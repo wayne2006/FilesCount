@@ -70,6 +70,9 @@ namespace FastestEnumerator
         /// </summary>
         public readonly string Path;
 
+        public int FilesCount;
+        public int DirectoryCount;
+
         /// <summary>
         /// Returns a <see cref="T:System.String"/> that represents the current <see cref="T:System.Object"/>.
         /// </summary>
@@ -87,7 +90,7 @@ namespace FastestEnumerator
         /// <param name="dir">The directory that the file is stored at</param>
         /// <param name="findData">WIN32_FIND_DATA structure that this
         /// object wraps.</param>
-        internal FileData(string dir, WIN32_FIND_DATA findData)
+        internal FileData(string dir, WIN32_FIND_DATA findData,int fcount,int dcount)
         {
             this.Attributes = findData.dwFileAttributes;
 
@@ -105,6 +108,8 @@ namespace FastestEnumerator
 
             this.Name = findData.cFileName;
             this.Path = System.IO.Path.Combine(dir, findData.cFileName);
+            this.FilesCount = fcount;
+            this.DirectoryCount = dcount;
         }
 
         private static long CombineHighLowInts(uint high, uint low)

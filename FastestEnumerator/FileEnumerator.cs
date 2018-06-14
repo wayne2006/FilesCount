@@ -45,6 +45,8 @@ namespace FastestEnumerator
         private WIN32_FIND_DATA m_win_find_data = new WIN32_FIND_DATA();
 
         private string m_searchtype;
+        private int m_filesCount;
+        private int m_directoryCount;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FileEnumerator"/> class.
@@ -67,6 +69,9 @@ namespace FastestEnumerator
             {
                 m_contextStack = new Stack<SearchContext>();
             }
+
+            m_filesCount = 0;
+            m_directoryCount = 0;
         }
 
         #region IEnumerator<FileData> Members
@@ -80,7 +85,7 @@ namespace FastestEnumerator
         /// </returns>
         public FileData Current
         {
-            get { return new FileData(m_path, m_win_find_data); }
+            get { return new FileData(m_path, m_win_find_data, m_filesCount, m_directoryCount); }
         }
 
         #endregion
@@ -112,7 +117,7 @@ namespace FastestEnumerator
         /// </returns>
         object System.Collections.IEnumerator.Current
         {
-            get { return new FileData(m_path, m_win_find_data); }
+            get { return new FileData(m_path, m_win_find_data, m_filesCount, m_directoryCount); }
         }
 
         /// <summary>
@@ -162,23 +167,42 @@ namespace FastestEnumerator
                 }
                 else if (m_searchtype == "OnlyDirectory")
                 {
-                    if (((FileAttributes)m_win_find_data.dwFileAttributes & FileAttributes.Archive) == FileAttributes.Archive)
+                    if (((FileAttributes)m_win_find_data.dwFileAttributes & FileAttributes.Directory) == FileAttributes.Directory)
                     {
+                        //m_directoryCount++;
                         //Ignore folders for now.   We call MoveNext recursively here to 
                         // move to the next item that FindNextFile will return.
-                        return MoveNext();
+                        //把目录为.和..的忽略
+                        if (m_win_find_data.cFileName == "." || m_win_find_data.cFileName == "..")
+                        {
+                            //Ignore folders for now.   We call MoveNext recursively here to 
+                            // move to the next item that FindNextFile will return.
+                            return MoveNext();
+                        }
                     }
-                    //把目录为.和..的忽略
-                    if (m_win_find_data.cFileName == "." || m_win_find_data.cFileName == "..")
+                    else
                     {
-                        //Ignore folders for now.   We call MoveNext recursively here to 
-                        // move to the next item that FindNextFile will return.
+                        //除目录外忽略其他
                         return MoveNext();
                     }
+                    //if (((FileAttributes)m_win_find_data.dwFileAttributes & FileAttributes.Archive) == FileAttributes.Archive)
+                    //{
+                    //    //Ignore folders for now.   We call MoveNext recursively here to 
+                    //    // move to the next item that FindNextFile will return.
+                    //    return MoveNext();
+                    //}
+                    
                 }
                 else if (m_searchtype == "All")
                 {
-
+                    if (((FileAttributes)m_win_find_data.dwFileAttributes & FileAttributes.Directory) == FileAttributes.Directory)
+                    {
+                        m_directoryCount++;
+                    }
+                    if (((FileAttributes)m_win_find_data.dwFileAttributes & FileAttributes.Directory) != FileAttributes.Directory)
+                    {
+                        m_filesCount++;
+                    }
                 }    
             }
             else if (m_searchOption == SearchOption.AllDirectories)
